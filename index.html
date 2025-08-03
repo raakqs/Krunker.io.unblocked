@@ -1,1 +1,54 @@
-<embed src='https://krunker.io' style='position:fixed; top:0; left:0; bottom:0; right:0; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:999999;'/>
+// Simple Aimbot Script for Krunker.io
+// Targets nearest enemy and automatically aims at them
+
+let aiming = false;
+let target = null;
+
+function getNearestEnemy() {
+  let enemies = [];
+  // Assume getAllPlayers() returns array of players except yourself
+  let players = getAllPlayers();
+  let closestDist = Infinity;
+  let nearest = null;
+  for(let p of players) {
+    if(p.team !== player.team && !p.isDead) {
+      let dist = getDistance(player.position, p.position);
+      if(dist < closestDist) {
+        closestDist = dist;
+        nearest = p;
+      }
+    }
+  }
+  return nearest;
+}
+
+function aimAtTarget(target) {
+  let dx = target.position.x - player.position.x;
+  let dy = target.position.y - player.position.y;
+  let dz = target.position.z - player.position.z;
+  let pitch = Math.atan2(-dy, Math.sqrt(dx*dx + dz*dz));
+  let yaw = Math.atan2(dz, dx);
+  player.viewAngles.pitch = pitch;
+  player.viewAngles.yaw = yaw;
+}
+
+function toggleAimbot() {
+  aiming = !aiming;
+  if(aiming) {
+    aimbotLoop();
+  }
+}
+
+function aimbotLoop() {
+  if(!aiming) return;
+  target = getNearestEnemy();
+  if(target) {
+    aimAtTarget(target);
+  }
+  setTimeout(aimbotLoop, 25);
+}
+
+// Bind toggle with key 'F'
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'F') toggleAimbot();
+});
